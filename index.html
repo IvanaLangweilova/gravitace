@@ -431,19 +431,44 @@
   el.m2.addEventListener('input', recalc, {passive:true});
 
   // číslo -> slider + výpočet hned
-  el.m1in.addEventListener('input', () => {
-    if (el.type1.value !== 'human') return;
-    const v = clamp(parseInt(el.m1in.value || "1", 10), 1, 300);
-    el.m1.value = String(v);
-    recalc();
-  });
+function applyHumanMassInput(which){
+  const is1 = (which === 1);
+  const type = is1 ? el.type1.value : el.type2.value;
+  if (type !== 'human') return;
 
-  el.m2in.addEventListener('input', () => {
-    if (el.type2.value !== 'human') return;
-    const v = clamp(parseInt(el.m2in.value || "1", 10), 1, 300);
-    el.m2.value = String(v);
-    recalc();
-  });
+  const inp = is1 ? el.m1in : el.m2in;
+  const slider = is1 ? el.m1 : el.m2;
+
+  const raw = inp.value.trim();
+
+  // Když je pole prázdné (žák maže), NIC nevnucujeme.
+  if (raw === "") return;
+
+  // Jen čísla
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return;
+
+  const v = clamp(Math.round(n), 1, 300);
+  slider.value = String(v);
+  inp.value = String(v);   // aby se po zadání srovnalo (např. 055 -> 55)
+  recalc();
+}
+
+// okamžitě při psaní (ale prázdné nechá být)
+el.m1in.addEventListener('input', () => applyHumanMassInput(1));
+el.m2in.addEventListener('input', () => applyHumanMassInput(2));
+
+// když žák klikne mimo pole, doplní se minimum 1, pokud nechal prázdné
+el.m1in.addEventListener('blur', () => {
+  if (el.type1.value !== 'human') return;
+  if (el.m1in.value.trim() === "") { el.m1in.value = el.m1.value; }
+});
+
+el.m2in.addEventListener('blur', () => {
+  if (el.type2.value !== 'human') return;
+  if (el.m2in.value.trim() === "") { el.m2in.value = el.m2.value; }
+});
+
 
   el.r.addEventListener('input', () => {
     const unit = el.rUnit.value;
@@ -518,4 +543,5 @@
 </script>
 </body>
 </html>
+
 

@@ -1,1 +1,279 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gravitační zákon – interaktivní kalkulačka</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 20px; line-height: 1.35; }
+    h1 { margin: 0 0 8px; }
+    .muted { color: #666; }
+    .grid { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 16px; }
+    @media (min-width: 980px){ .grid { grid-template-columns: 1.1fr 0.9fr; } }
+    .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; background: #fff; }
+    .row { display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap; }
+    label { display:block; font-size: 14px; margin: 10px 0 6px; }
+    input[type="range"]{ width: 100%; }
+    .badge { display:inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid #ddd; font-size: 13px; background:#fafafa; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+    .sep { border: none; border-top: 1px solid #eee; margin: 12px 0; }
+    .kpi { font-size: 18px; font-weight: 700; }
+    .small { font-size: 13px; }
+    .hint { background:#fafafa; border:1px solid #eee; border-radius:12px; padding:12px; }
+    svg { width: 100%; height: 260px; display:block; }
+    .btnrow { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    button { border:1px solid #ddd; background:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; }
+    button:hover { background:#fafafa; }
+  </style>
+</head>
+<body>
+  <h1>Newtonův gravitační zákon</h1>
+  <div class="muted">
+    Měň hmotnosti <b>m₁</b>, <b>m₂</b> a vzdálenost <b>r</b>. Vzorec i výsledek se přepočítají automaticky.
+  </div>
+
+  <div class="grid">
+    <!-- VIZUALIZACE + VÝSLEDEK -->
+    <div class="card">
+      <div class="row">
+        <div class="badge">F = <span id="Fval" class="kpi">0</span> N</div>
+        <div class="badge mono">G = 6,67430×10⁻¹¹ N·m²·kg⁻²</div>
+      </div>
+
+      <div style="margin-top:12px; border:1px solid #eee; border-radius:14px; padding:12px; background:#fafafa;">
+        <svg viewBox="0 0 820 320" aria-label="Vizualizace gravitační síly">
+          <!-- osa / popisek -->
+          <text x="20" y="30" font-size="12" fill="black" opacity="0.55">m₁</text>
+          <text x="780" y="30" font-size="12" fill="black" opacity="0.55" text-anchor="end">m₂</text>
+
+          <!-- spojnice -->
+          <line id="line" x1="200" y1="170" x2="620" y2="170" stroke="black" opacity="0.15" stroke-width="6" />
+
+          <!-- šipky síly -->
+          <g id="arrowL" opacity="0.65">
+            <line x1="260" y1="140" x2="360" y2="140" stroke="black" stroke-width="4" />
+            <polygon points="360,140 342,132 342,148" fill="black" />
+            <text x="260" y="125" font-size="12" fill="black" opacity="0.75">F</text>
+          </g>
+
+          <g id="arrowR" opacity="0.65">
+            <line x1="560" y1="200" x2="460" y2="200" stroke="black" stroke-width="4" />
+            <polygon points="460,200 478,192 478,208" fill="black" />
+            <text x="560" y="220" font-size="12" fill="black" opacity="0.75" text-anchor="end">F</text>
+          </g>
+
+          <!-- tělesa -->
+          <g id="m1" transform="translate(200 170)">
+            <circle id="c1" cx="0" cy="0" r="28" fill="black" opacity="0.25"></circle>
+            <circle cx="-10" cy="-10" r="4" fill="black" opacity="0.15"></circle>
+            <circle cx="12" cy="8" r="6" fill="black" opacity="0.12"></circle>
+            <text x="0" y="55" font-size="12" text-anchor="middle" fill="black" opacity="0.7">m₁</text>
+          </g>
+
+          <g id="m2" transform="translate(620 170)">
+            <circle id="c2" cx="0" cy="0" r="28" fill="black" opacity="0.25"></circle>
+            <circle cx="-12" cy="6" r="5" fill="black" opacity="0.12"></circle>
+            <circle cx="10" cy="-8" r="3" fill="black" opacity="0.14"></circle>
+            <text x="0" y="55" font-size="12" text-anchor="middle" fill="black" opacity="0.7">m₂</text>
+          </g>
+
+          <!-- popisek vzdálenosti -->
+          <text id="rText" x="410" y="160" font-size="12" text-anchor="middle" fill="black" opacity="0.65">r</text>
+        </svg>
+      </div>
+
+      <hr class="sep">
+
+      <div class="hint">
+        <div class="muted small">Vzorec:</div>
+        <div class="mono" style="margin-top:6px;">
+          F = G · (m₁ · m₂) / r²
+        </div>
+
+        <div class="muted small" style="margin-top:10px;">Dosazení:</div>
+        <div class="mono" style="margin-top:6px;">
+          F = (6,67430×10⁻¹¹) · (<span id="m1sub">1</span> · <span id="m2sub">1</span>) / (<span id="rsub">1</span>)²
+          <br>
+          F = <span id="Fsub">0</span> N
+        </div>
+      </div>
+    </div>
+
+    <!-- OVLÁDÁNÍ + VYSVĚTLENÍ -->
+    <div class="card">
+      <b>Nastavení</b>
+
+      <label>Hmotnost m₁: <b><span id="m1v">10</span></b> kg</label>
+      <input id="m1" type="range" min="1" max="6000" step="1" value="10">
+
+      <label>Hmotnost m₂: <b><span id="m2v">10</span></b> kg</label>
+      <input id="m2" type="range" min="1" max="6000" step="1" value="10">
+
+      <label>Vzdálenost r: <b><span id="rv">1.00</span></b> m</label>
+      <input id="r" type="range" min="0.10" max="20" step="0.10" value="1.00">
+
+      <div class="btnrow">
+        <button id="presetEarth">Země–člověk (odhad)</button>
+        <button id="presetTwoPeople">Dva lidé</button>
+        <button id="presetBalls">Dvě koule 10 kg</button>
+      </div>
+
+      <hr class="sep">
+
+      <b>Vysvětlení (statika / síla)</b>
+      <div class="small muted" style="margin-top:6px;">
+        Gravitační síla působí <b>vždy přitažlivě</b> mezi dvěma hmotnými tělesy. Čím jsou tělesa těžší, tím je síla větší.
+        Čím jsou dál od sebe, tím síla <b>rychle klesá</b> (je nepřímo úměrná r²).
+      </div>
+
+      <hr class="sep">
+
+      <b>Popis veličin</b>
+      <div class="small muted" style="margin-top:6px;">
+        <b>F</b> … gravitační síla (N)<br>
+        <b>G</b> … gravitační konstanta (6,67430×10⁻¹¹ N·m²·kg⁻²)<br>
+        <b>m₁, m₂</b> … hmotnosti těles (kg)<br>
+        <b>r</b> … vzdálenost středů těles (m)
+      </div>
+
+      <hr class="sep">
+
+      <b>Tip pro žáky</b>
+      <div class="small muted" style="margin-top:6px;">
+        Když se <b>r zdvojnásobí</b>, síla se zmenší na <b>čtvrtinu</b>. (Protože r².)
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Gravitační konstanta
+  const G = 6.67430e-11;
+
+  const el = {
+    m1: document.getElementById('m1'),
+    m2: document.getElementById('m2'),
+    r:  document.getElementById('r'),
+
+    m1v: document.getElementById('m1v'),
+    m2v: document.getElementById('m2v'),
+    rv:  document.getElementById('rv'),
+
+    m1sub: document.getElementById('m1sub'),
+    m2sub: document.getElementById('m2sub'),
+    rsub:  document.getElementById('rsub'),
+    Fsub:  document.getElementById('Fsub'),
+    Fval:  document.getElementById('Fval'),
+
+    c1: document.getElementById('c1'),
+    c2: document.getElementById('c2'),
+    line: document.getElementById('line'),
+    rText: document.getElementById('rText'),
+    m1g: document.getElementById('m1'),
+    m2g: document.getElementById('m2'),
+
+    presetEarth: document.getElementById('presetEarth'),
+    presetTwoPeople: document.getElementById('presetTwoPeople'),
+    presetBalls: document.getElementById('presetBalls'),
+  };
+
+  function fmtSci(n) {
+    // hezký vědecký zápis pro malé/velké hodnoty
+    if (n === 0) return "0";
+    const abs = Math.abs(n);
+    if (abs >= 0.001 && abs < 10000) return n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+    return n.toExponential(3).replace('e', '×10^');
+  }
+
+  function fmt(n, d=2) {
+    return Number.isFinite(n) ? n.toFixed(d) : "–";
+  }
+
+  function clamp(v, min, max){ return Math.min(max, Math.max(min, v)); }
+
+  function recalc(){
+    const m1 = +el.m1.value;
+    const m2 = +el.m2.value;
+    const r  = +el.r.value;
+
+    // Výpočet
+    const F = G * (m1 * m2) / (r * r);
+
+    // Texty
+    el.m1v.textContent = m1.toFixed(0);
+    el.m2v.textContent = m2.toFixed(0);
+    el.rv.textContent  = fmt(r, 2);
+
+    el.m1sub.textContent = m1.toFixed(0);
+    el.m2sub.textContent = m2.toFixed(0);
+    el.rsub.textContent  = fmt(r, 2);
+
+    el.Fval.textContent = fmtSci(F);
+    el.Fsub.textContent = fmtSci(F);
+
+    // Vizualizace: velikost kuliček ~ log(m)
+    const r1 = clamp(14 + Math.log10(m1) * 10, 16, 52);
+    const r2 = clamp(14 + Math.log10(m2) * 10, 16, 52);
+    el.c1.setAttribute("r", r1.toFixed(1));
+    el.c2.setAttribute("r", r2.toFixed(1));
+
+    // Vzdálenost v obrázku podle r (0.1..20 m -> 260..520 px)
+    const dpx = 260 + ( (r - 0.1) / (20 - 0.1) ) * 260;
+    const x1 = 410 - dpx/2;
+    const x2 = 410 + dpx/2;
+
+    // Posun těles
+    document.getElementById('m1').closest('svg'); // jen aby bylo jasné, že svg existuje
+    document.getElementById('m1'); // slider existuje
+    document.getElementById('m2'); // slider existuje
+
+    document.getElementById('m1v'); // text existuje
+
+    document.getElementById('m1'); // ok
+
+    // SVG elementy (skupiny)
+    document.querySelector('g#m1').setAttribute("transform", `translate(${x1} 170)`);
+    document.querySelector('g#m2').setAttribute("transform", `translate(${x2} 170)`);
+
+    // Spojnice + popisek r
+    el.line.setAttribute("x1", x1);
+    el.line.setAttribute("x2", x2);
+    el.rText.setAttribute("x", 410);
+    el.rText.textContent = `r = ${fmt(r,2)} m`;
+  }
+
+  // Presety
+  el.presetEarth.addEventListener('click', () => {
+    // Země ~ 5.97e24 kg je mimo rozsah slideru, tak dáme "odhad" v rámci aplikace:
+    // Např. m1 = 6000 kg (max), m2 = 80 kg, r = 1 m
+    el.m1.value = 6000;
+    el.m2.value = 80;
+    el.r.value  = 1.0;
+    recalc();
+  });
+
+  el.presetTwoPeople.addEventListener('click', () => {
+    el.m1.value = 70;
+    el.m2.value = 70;
+    el.r.value  = 1.0;
+    recalc();
+  });
+
+  el.presetBalls.addEventListener('click', () => {
+    el.m1.value = 10;
+    el.m2.value = 10;
+    el.r.value  = 0.5;
+    recalc();
+  });
+
+  ['input','change'].forEach(evt=>{
+    el.m1.addEventListener(evt, recalc);
+    el.m2.addEventListener(evt, recalc);
+    el.r.addEventListener(evt, recalc);
+  });
+
+  recalc();
+</script>
+</body>
+</html>
+
 

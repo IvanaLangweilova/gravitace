@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gravitační zákon – interaktivní kalkulačka</title>
+  <title>Newtonův gravitační zákon – interaktivní</title>
   <style>
     body { font-family: system-ui, Arial, sans-serif; margin: 20px; line-height: 1.35; }
     h1 { margin: 0 0 8px; }
     .muted { color: #666; }
     .grid { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 16px; }
     @media (min-width: 980px){ .grid { grid-template-columns: 1.1fr 0.9fr; } }
+
     .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; background: #fff; }
     .row { display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap; }
     label { display:block; font-size: 14px; margin: 10px 0 6px; }
     input[type="range"]{ width: 100%; }
+    select { width: 100%; padding: 8px; border-radius: 10px; border: 1px solid #ddd; background: #fff; }
     .badge { display:inline-block; padding: 6px 10px; border-radius: 999px; border: 1px solid #ddd; font-size: 13px; background:#fafafa; }
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
-    .sep { border: none; border-top: 1px solid #eee; margin: 12px 0; }
     .kpi { font-size: 18px; font-weight: 700; }
     .small { font-size: 13px; }
     .hint { background:#fafafa; border:1px solid #eee; border-radius:12px; padding:12px; }
@@ -24,12 +25,18 @@
     .btnrow { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
     button { border:1px solid #ddd; background:#fff; padding:8px 10px; border-radius:10px; cursor:pointer; }
     button:hover { background:#fafafa; }
+    .twocol { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pill { border:1px solid #eee; border-radius:12px; padding:10px; background:#fafafa; }
+    .sep { border: none; border-top: 1px solid #eee; margin: 12px 0; }
+
+    input:disabled { opacity: 0.5; cursor: not-allowed; }
   </style>
 </head>
+
 <body>
   <h1>Newtonův gravitační zákon</h1>
   <div class="muted">
-    Měň hmotnosti <b>m₁</b>, <b>m₂</b> a vzdálenost <b>r</b>. Vzorec i výsledek se přepočítají automaticky.
+    Měň <b>m₁</b>, <b>m₂</b> a vzdálenost <b>r</b>. Přepínej jednotky (mm / dm / m / km) a typ těles (člověk / Země).
   </div>
 
   <div class="grid">
@@ -42,12 +49,16 @@
 
       <div style="margin-top:12px; border:1px solid #eee; border-radius:14px; padding:12px; background:#fafafa;">
         <svg viewBox="0 0 820 320" aria-label="Vizualizace gravitační síly">
-          <!-- osa / popisek -->
-          <text x="20" y="30" font-size="12" fill="black" opacity="0.55">m₁</text>
-          <text x="780" y="30" font-size="12" fill="black" opacity="0.55" text-anchor="end">m₂</text>
+          <defs>
+            <radialGradient id="earthGrad" cx="35%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#b8e7ff"/>
+              <stop offset="55%" stop-color="#2a8bdc"/>
+              <stop offset="100%" stop-color="#0a3c7a"/>
+            </radialGradient>
+          </defs>
 
           <!-- spojnice -->
-          <line id="line" x1="200" y1="170" x2="620" y2="170" stroke="black" opacity="0.15" stroke-width="6" />
+          <line id="line" x1="200" y1="170" x2="620" y2="170" stroke="black" opacity="0.12" stroke-width="6" />
 
           <!-- šipky síly -->
           <g id="arrowL" opacity="0.65">
@@ -62,22 +73,50 @@
             <text x="560" y="220" font-size="12" fill="black" opacity="0.75" text-anchor="end">F</text>
           </g>
 
-          <!-- tělesa -->
-          <g id="m1" transform="translate(200 170)">
-            <circle id="c1" cx="0" cy="0" r="28" fill="black" opacity="0.25"></circle>
-            <circle cx="-10" cy="-10" r="4" fill="black" opacity="0.15"></circle>
-            <circle cx="12" cy="8" r="6" fill="black" opacity="0.12"></circle>
-            <text x="0" y="55" font-size="12" text-anchor="middle" fill="black" opacity="0.7">m₁</text>
+          <!-- těleso 1 -->
+          <g id="body1" transform="translate(200 170)">
+            <!-- ČLOVĚK -->
+            <g id="human1">
+              <circle cx="0" cy="-18" r="10" fill="black" opacity="0.35"></circle>
+              <line x1="0" y1="-8" x2="0" y2="28" stroke="black" stroke-width="6" opacity="0.25" stroke-linecap="round"></line>
+              <line x1="-18" y1="6" x2="18" y2="6" stroke="black" stroke-width="6" opacity="0.25" stroke-linecap="round"></line>
+              <line x1="0" y1="28" x2="-14" y2="48" stroke="black" stroke-width="6" opacity="0.25" stroke-linecap="round"></line>
+              <line x1="0" y1="28" x2="14" y2="48" stroke="black" stroke-width="6" opacity="0.25" stroke-linecap="round"></line>
+            </g>
+
+            <!-- ZEMĚ -->
+            <g id="earth1" style="display:none;">
+              <circle cx="0" cy="0" r="38" fill="url(#earthGrad)" opacity="0.95"></circle>
+              <path d="M-10,-10 C-25,-5 -20,10 -5,8 C5,6 0,-5 -10,-10 Z" fill="#2ecc71" opacity="0.85"/>
+              <path d="M12,-18 C25,-10 20,5 8,2 C2,0 6,-12 12,-18 Z" fill="#2ecc71" opacity="0.85"/>
+              <path d="M-20,18 C-10,10 5,18 -2,28 C-8,36 -28,28 -20,18 Z" fill="#2ecc71" opacity="0.85"/>
+              <circle cx="-14" cy="-20" r="6" fill="#ffffff" opacity="0.25"></circle>
+            </g>
+
+            <text id="label1" x="0" y="70" font-size="12" text-anchor="middle" fill="black" opacity="0.7">m₁</text>
           </g>
 
-          <g id="m2" transform="translate(620 170)">
-            <circle id="c2" cx="0" cy="0" r="28" fill="black" opacity="0.25"></circle>
-            <circle cx="-12" cy="6" r="5" fill="black" opacity="0.12"></circle>
-            <circle cx="10" cy="-8" r="3" fill="black" opacity="0.14"></circle>
-            <text x="0" y="55" font-size="12" text-anchor="middle" fill="black" opacity="0.7">m₂</text>
+          <!-- těleso 2 -->
+          <g id="body2" transform="translate(620 170)">
+            <g id="human2">
+              <circle cx="0" cy="-18" r="10" fill="black" opacity="0.35"></circle>
+              <line x1="0" y1="-8" x2="0" y2="28" stroke="black" stroke-width="6" opacity="0.25" stroke-linecap="round"></line>
+              <line x1="-18" y1="6" x2="18" y2="6" stroke="black" stroke-width="6" opacity="0.25" stroke-linecap="round"></line>
+              <line x1="0" y1="28" x2="-14" y2="48" stroke="black" stroke-width="6" opacity="0.25" stroke-linecap="round"></line>
+              <line x1="0" y1="28" x2="14" y2="48" stroke="black" stroke-width="6" opacity="0.25" stroke-linecap="round"></line>
+            </g>
+
+            <g id="earth2" style="display:none;">
+              <circle cx="0" cy="0" r="38" fill="url(#earthGrad)" opacity="0.95"></circle>
+              <path d="M-10,-10 C-25,-5 -20,10 -5,8 C5,6 0,-5 -10,-10 Z" fill="#2ecc71" opacity="0.85"/>
+              <path d="M12,-18 C25,-10 20,5 8,2 C2,0 6,-12 12,-18 Z" fill="#2ecc71" opacity="0.85"/>
+              <path d="M-20,18 C-10,10 5,18 -2,28 C-8,36 -28,28 -20,18 Z" fill="#2ecc71" opacity="0.85"/>
+              <circle cx="-14" cy="-20" r="6" fill="#ffffff" opacity="0.25"></circle>
+            </g>
+
+            <text id="label2" x="0" y="70" font-size="12" text-anchor="middle" fill="black" opacity="0.7">m₂</text>
           </g>
 
-          <!-- popisek vzdálenosti -->
           <text id="rText" x="410" y="160" font-size="12" text-anchor="middle" fill="black" opacity="0.65">r</text>
         </svg>
       </div>
@@ -99,64 +138,113 @@
       </div>
     </div>
 
-    <!-- OVLÁDÁNÍ + VYSVĚTLENÍ -->
+    <!-- OVLÁDÁNÍ -->
     <div class="card">
       <b>Nastavení</b>
 
-      <label>Hmotnost m₁: <b><span id="m1v">10</span></b> kg</label>
-      <input id="m1" type="range" min="1" max="6000" step="1" value="10">
+      <div class="twocol" style="margin-top:10px;">
+        <div class="pill">
+          <b>Těleso 1</b>
 
-      <label>Hmotnost m₂: <b><span id="m2v">10</span></b> kg</label>
-      <input id="m2" type="range" min="1" max="6000" step="1" value="10">
+          <label>Typ:</label>
+          <select id="type1">
+            <option value="human">Člověk</option>
+            <option value="earth">Země</option>
+          </select>
 
-      <label>Vzdálenost r: <b><span id="rv">1.00</span></b> m</label>
-      <input id="r" type="range" min="0.10" max="20" step="0.10" value="1.00">
+          <label style="margin-top:10px;">
+            Hmotnost m₁: <b><span id="m1v">70</span></b> <span id="m1unit">kg</span>
+          </label>
+          <div class="small muted" id="m1mode">Režim: Člověk (hmotnost lze měnit)</div>
+          <input id="m1" type="range" min="1" max="6000" step="1" value="70">
+        </div>
+
+        <div class="pill">
+          <b>Těleso 2</b>
+
+          <label>Typ:</label>
+          <select id="type2">
+            <option value="human">Člověk</option>
+            <option value="earth">Země</option>
+          </select>
+
+          <label style="margin-top:10px;">
+            Hmotnost m₂: <b><span id="m2v">70</span></b> <span id="m2unit">kg</span>
+          </label>
+          <div class="small muted" id="m2mode">Režim: Člověk (hmotnost lze měnit)</div>
+          <input id="m2" type="range" min="1" max="6000" step="1" value="70">
+        </div>
+      </div>
+
+      <hr class="sep">
+
+      <b>Vzdálenost</b>
+      <label style="margin-top:10px;">Jednotky r:</label>
+      <select id="rUnit">
+        <option value="mm">mm</option>
+        <option value="dm">dm</option>
+        <option value="m" selected>m</option>
+        <option value="km">km</option>
+      </select>
+
+      <label style="margin-top:10px;">
+        Vzdálenost r: <b><span id="rv">1.00</span></b> <span id="rvUnit">m</span>
+      </label>
+      <input id="r" type="range" min="0.1" max="200" step="0.1" value="1.0">
 
       <div class="btnrow">
-        <button id="presetEarth">Země–člověk (odhad)</button>
-        <button id="presetTwoPeople">Dva lidé</button>
-        <button id="presetBalls">Dvě koule 10 kg</button>
+        <button id="presetTwoPeople">Dva lidé (70 kg, 1 m)</button>
+        <button id="presetEarthHuman">Země–člověk (1 m)</button>
+        <button id="presetEarthEarth">Země–Země (10 000 km)</button>
       </div>
 
       <hr class="sep">
 
-      <b>Vysvětlení (statika / síla)</b>
+      <b>Vysvětlení</b>
       <div class="small muted" style="margin-top:6px;">
-        Gravitační síla působí <b>vždy přitažlivě</b> mezi dvěma hmotnými tělesy. Čím jsou tělesa těžší, tím je síla větší.
-        Čím jsou dál od sebe, tím síla <b>rychle klesá</b> (je nepřímo úměrná r²).
+        Gravitační síla je vždy <b>přitažlivá</b>. Závisí na součinu hmotností a klesá s druhou mocninou vzdálenosti (<b>r²</b>).
       </div>
 
       <hr class="sep">
 
-      <b>Popis veličin</b>
+      <b>Veličiny ve vzorci</b>
       <div class="small muted" style="margin-top:6px;">
         <b>F</b> … gravitační síla (N)<br>
         <b>G</b> … gravitační konstanta (6,67430×10⁻¹¹ N·m²·kg⁻²)<br>
-        <b>m₁, m₂</b> … hmotnosti těles (kg)<br>
-        <b>r</b> … vzdálenost středů těles (m)
+        <b>m₁, m₂</b> … hmotnosti (kg) – u Země pevně dané<br>
+        <b>r</b> … vzdálenost středů těles (m) – lze přepnout mm/dm/m/km
       </div>
 
       <hr class="sep">
 
       <b>Tip pro žáky</b>
       <div class="small muted" style="margin-top:6px;">
-        Když se <b>r zdvojnásobí</b>, síla se zmenší na <b>čtvrtinu</b>. (Protože r².)
+        Když se <b>r zdvojnásobí</b>, síla se zmenší na <b>čtvrtinu</b>.
       </div>
     </div>
   </div>
 
 <script>
-  // Gravitační konstanta
   const G = 6.67430e-11;
+  const EARTH_MASS = 5.972e24; // kg
 
   const el = {
+    type1: document.getElementById('type1'),
+    type2: document.getElementById('type2'),
     m1: document.getElementById('m1'),
     m2: document.getElementById('m2'),
     r:  document.getElementById('r'),
+    rUnit: document.getElementById('rUnit'),
 
     m1v: document.getElementById('m1v'),
     m2v: document.getElementById('m2v'),
     rv:  document.getElementById('rv'),
+    rvUnit: document.getElementById('rvUnit'),
+
+    m1mode: document.getElementById('m1mode'),
+    m2mode: document.getElementById('m2mode'),
+    m1unit: document.getElementById('m1unit'),
+    m2unit: document.getElementById('m2unit'),
 
     m1sub: document.getElementById('m1sub'),
     m2sub: document.getElementById('m2sub'),
@@ -164,116 +252,242 @@
     Fsub:  document.getElementById('Fsub'),
     Fval:  document.getElementById('Fval'),
 
-    c1: document.getElementById('c1'),
-    c2: document.getElementById('c2'),
     line: document.getElementById('line'),
     rText: document.getElementById('rText'),
-    m1g: document.getElementById('m1'),
-    m2g: document.getElementById('m2'),
 
-    presetEarth: document.getElementById('presetEarth'),
+    body1: document.getElementById('body1'),
+    body2: document.getElementById('body2'),
+    human1: document.getElementById('human1'),
+    human2: document.getElementById('human2'),
+    earth1: document.getElementById('earth1'),
+    earth2: document.getElementById('earth2'),
+    label1: document.getElementById('label1'),
+    label2: document.getElementById('label2'),
+
     presetTwoPeople: document.getElementById('presetTwoPeople'),
-    presetBalls: document.getElementById('presetBalls'),
+    presetEarthHuman: document.getElementById('presetEarthHuman'),
+    presetEarthEarth: document.getElementById('presetEarthEarth'),
   };
 
+  // Vnitřně počítáme vždy v metrech
+  let rMeters = 1.0;
+
   function fmtSci(n) {
-    // hezký vědecký zápis pro malé/velké hodnoty
+    if (!Number.isFinite(n)) return "–";
     if (n === 0) return "0";
     const abs = Math.abs(n);
-    if (abs >= 0.001 && abs < 10000) return n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
-    return n.toExponential(3).replace('e', '×10^');
+    if (abs >= 0.001 && abs < 10000) {
+      return n.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+    }
+    const s = n.toExponential(3);
+    const [a, b] = s.split('e');
+    return `${a}×10^${Number(b)}`;
   }
 
-  function fmt(n, d=2) {
-    return Number.isFinite(n) ? n.toFixed(d) : "–";
+  function toUnit(m, unit){
+    if (unit === 'mm') return m * 1000;
+    if (unit === 'dm') return m * 10;
+    if (unit === 'km') return m / 1000;
+    return m; // m
   }
 
-  function clamp(v, min, max){ return Math.min(max, Math.max(min, v)); }
+  function fromUnit(v, unit){
+    if (unit === 'mm') return v / 1000;
+    if (unit === 'dm') return v / 10;
+    if (unit === 'km') return v * 1000;
+    return v; // m
+  }
+
+  function setDistanceSliderByUnit(unit){
+    // Rozumné rozsahy pro školu:
+    // mm: 1..5000 mm (1 mm..5 m)
+    // dm: 1..500 dm (0.1..50 m)
+    // m : 0.1..200 m
+    // km: 0.001..20 km (1 m..20 km)
+    let min, max, step;
+    if (unit === 'mm'){ min = 1; max = 5000; step = 1; }
+    else if (unit === 'dm'){ min = 1; max = 500; step = 1; }
+    else if (unit === 'km'){ min = 0.001; max = 20; step = 0.001; }
+    else { min = 0.1; max = 200; step = 0.1; }
+
+    el.r.min = String(min);
+    el.r.max = String(max);
+    el.r.step = String(step);
+
+    // Nastav slider tak, aby odpovídal rMeters
+    const v = toUnit(rMeters, unit);
+    const clamped = Math.min(max, Math.max(min, v));
+    el.r.value = String(clamped);
+
+    el.rvUnit.textContent = unit;
+  }
+
+  function applyBodyType(which, type){
+    const isEarth = (type === 'earth');
+
+    if (which === 1){
+      el.human1.style.display = isEarth ? 'none' : '';
+      el.earth1.style.display = isEarth ? '' : 'none';
+      el.label1.textContent = isEarth ? 'Země (m₁)' : 'Člověk (m₁)';
+
+      if (isEarth){
+        el.m1.disabled = true;
+        el.m1mode.textContent = 'Režim: Země (hmotnost je pevně daná)';
+      } else {
+        el.m1.disabled = false;
+        el.m1mode.textContent = 'Režim: Člověk (hmotnost lze měnit)';
+      }
+    } else {
+      el.human2.style.display = isEarth ? 'none' : '';
+      el.earth2.style.display = isEarth ? '' : 'none';
+      el.label2.textContent = isEarth ? 'Země (m₂)' : 'Člověk (m₂)';
+
+      if (isEarth){
+        el.m2.disabled = true;
+        el.m2mode.textContent = 'Režim: Země (hmotnost je pevně daná)';
+      } else {
+        el.m2.disabled = false;
+        el.m2mode.textContent = 'Režim: Člověk (hmotnost lze měnit)';
+      }
+    }
+  }
+
+  function getMassKg(which){
+    // Země = reálná hmotnost Země, Člověk = hodnota slideru
+    if (which === 1){
+      return (el.type1.value === 'earth') ? EARTH_MASS : (+el.m1.value);
+    } else {
+      return (el.type2.value === 'earth') ? EARTH_MASS : (+el.m2.value);
+    }
+  }
 
   function recalc(){
-    const m1 = +el.m1.value;
-    const m2 = +el.m2.value;
-    const r  = +el.r.value;
+    const m1 = getMassKg(1);
+    const m2 = getMassKg(2);
+    const r  = rMeters;
 
-    // Výpočet
     const F = G * (m1 * m2) / (r * r);
 
-    // Texty
-    el.m1v.textContent = m1.toFixed(0);
-    el.m2v.textContent = m2.toFixed(0);
-    el.rv.textContent  = fmt(r, 2);
+    // UI hmotností
+    el.m1v.textContent = (el.type1.value === 'earth') ? (fmtSci(m1) + ' (Země)') : (+el.m1.value).toFixed(0);
+    el.m2v.textContent = (el.type2.value === 'earth') ? (fmtSci(m2) + ' (Země)') : (+el.m2.value).toFixed(0);
 
-    el.m1sub.textContent = m1.toFixed(0);
-    el.m2sub.textContent = m2.toFixed(0);
-    el.rsub.textContent  = fmt(r, 2);
+    // vzdálenost v aktuální jednotce
+    const unit = el.rUnit.value;
+    const rU = toUnit(rMeters, unit);
+    el.rv.textContent =
+      (unit === 'km') ? rU.toFixed(3)
+      : (unit === 'mm' || unit === 'dm') ? rU.toFixed(0)
+      : rU.toFixed(2);
+
+    // Dosazení (r vždy v metrech)
+    el.m1sub.textContent = (el.type1.value === 'earth') ? fmtSci(m1) : (+el.m1.value).toFixed(0);
+    el.m2sub.textContent = (el.type2.value === 'earth') ? fmtSci(m2) : (+el.m2.value).toFixed(0);
+    el.rsub.textContent  = r.toFixed(3);
 
     el.Fval.textContent = fmtSci(F);
     el.Fsub.textContent = fmtSci(F);
 
-    // Vizualizace: velikost kuliček ~ log(m)
-    const r1 = clamp(14 + Math.log10(m1) * 10, 16, 52);
-    const r2 = clamp(14 + Math.log10(m2) * 10, 16, 52);
-    el.c1.setAttribute("r", r1.toFixed(1));
-    el.c2.setAttribute("r", r2.toFixed(1));
+    // vizualizace vzdálenosti (log mapping)
+    const rMin = 0.001, rMax = 20000; // m
+    const t = Math.min(1, Math.max(0,
+      (Math.log10(r) - Math.log10(rMin)) / (Math.log10(rMax) - Math.log10(rMin))
+    ));
+    const dpx = 180 + t * 380; // 180..560 px
 
-    // Vzdálenost v obrázku podle r (0.1..20 m -> 260..520 px)
-    const dpx = 260 + ( (r - 0.1) / (20 - 0.1) ) * 260;
     const x1 = 410 - dpx/2;
     const x2 = 410 + dpx/2;
 
-    // Posun těles
-    document.getElementById('m1').closest('svg'); // jen aby bylo jasné, že svg existuje
-    document.getElementById('m1'); // slider existuje
-    document.getElementById('m2'); // slider existuje
+    el.body1.setAttribute("transform", `translate(${x1} 170)`);
+    el.body2.setAttribute("transform", `translate(${x2} 170)`);
 
-    document.getElementById('m1v'); // text existuje
-
-    document.getElementById('m1'); // ok
-
-    // SVG elementy (skupiny)
-    document.querySelector('g#m1').setAttribute("transform", `translate(${x1} 170)`);
-    document.querySelector('g#m2').setAttribute("transform", `translate(${x2} 170)`);
-
-    // Spojnice + popisek r
     el.line.setAttribute("x1", x1);
     el.line.setAttribute("x2", x2);
-    el.rText.setAttribute("x", 410);
-    el.rText.textContent = `r = ${fmt(r,2)} m`;
+
+    el.rText.textContent = `r = ${r.toFixed(3)} m`;
   }
 
-  // Presety
-  el.presetEarth.addEventListener('click', () => {
-    // Země ~ 5.97e24 kg je mimo rozsah slideru, tak dáme "odhad" v rámci aplikace:
-    // Např. m1 = 6000 kg (max), m2 = 80 kg, r = 1 m
-    el.m1.value = 6000;
-    el.m2.value = 80;
-    el.r.value  = 1.0;
+  // OKAMŽITÁ reakce posuvníků (input)
+  el.m1.addEventListener('input', recalc, {passive:true});
+  el.m2.addEventListener('input', recalc, {passive:true});
+
+  el.r.addEventListener('input', () => {
+    const unit = el.rUnit.value;
+    const v = parseFloat(el.r.value);
+    rMeters = fromUnit(v, unit);
+    recalc();
+  }, {passive:true});
+
+  el.rUnit.addEventListener('change', () => {
+    setDistanceSliderByUnit(el.rUnit.value);
+    const v = parseFloat(el.r.value);
+    rMeters = fromUnit(v, el.rUnit.value);
     recalc();
   });
 
+  el.type1.addEventListener('change', () => {
+    applyBodyType(1, el.type1.value);
+    recalc();
+  });
+
+  el.type2.addEventListener('change', () => {
+    applyBodyType(2, el.type2.value);
+    recalc();
+  });
+
+  // Presety
   el.presetTwoPeople.addEventListener('click', () => {
+    el.type1.value = 'human';
+    el.type2.value = 'human';
+    applyBodyType(1,'human');
+    applyBodyType(2,'human');
+
     el.m1.value = 70;
     el.m2.value = 70;
-    el.r.value  = 1.0;
+
+    rMeters = 1.0;
+    el.rUnit.value = 'm';
+    setDistanceSliderByUnit('m');
+    el.r.value = '1.0';
+
     recalc();
   });
 
-  el.presetBalls.addEventListener('click', () => {
-    el.m1.value = 10;
-    el.m2.value = 10;
-    el.r.value  = 0.5;
+  el.presetEarthHuman.addEventListener('click', () => {
+    el.type1.value = 'earth';
+    el.type2.value = 'human';
+    applyBodyType(1,'earth');
+    applyBodyType(2,'human');
+
+    el.m2.value = 70;
+
+    rMeters = 1.0;
+    el.rUnit.value = 'm';
+    setDistanceSliderByUnit('m');
+    el.r.value = '1.0';
+
     recalc();
   });
 
-  ['input','change'].forEach(evt=>{
-    el.m1.addEventListener(evt, recalc);
-    el.m2.addEventListener(evt, recalc);
-    el.r.addEventListener(evt, recalc);
+  el.presetEarthEarth.addEventListener('click', () => {
+    el.type1.value = 'earth';
+    el.type2.value = 'earth';
+    applyBodyType(1,'earth');
+    applyBodyType(2,'earth');
+
+    rMeters = 10000000; // 10 000 km
+    el.rUnit.value = 'km';
+    setDistanceSliderByUnit('km');
+    el.r.value = '10.000';
+
+    recalc();
   });
 
+  // start
+  setDistanceSliderByUnit('m');
+  applyBodyType(1,'human');
+  applyBodyType(2,'human');
   recalc();
 </script>
 </body>
 </html>
-
-
